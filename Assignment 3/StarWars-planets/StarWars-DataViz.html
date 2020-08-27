@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Dev5 - D3 Werkstuk</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="d3.js"></script>
+  <style>
+    html {
+      background-image: url(./Stars.jpg);
+      background-repeat: no-repeat;
+      background-size: 100%;
+    }
+
+    .planetDetails,
+    .planetMovies {
+      color: #f5c242;
+      font-weight: bold;
+      font-size: large;
+      text-align: center;
+    }
+
+    .names {
+      fill: #ffffff;
+      font-size: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="allPlanets"></div>
+  <div class="planetDetails"></div>
+  <div class="planetMovies"></div>
+
+  <script type="text/javascript">
+    //Loading api 
+    d3.json('https://swapi.dev/api/planets/?page=1',
+      function(data) {
+        let scale = 1000;
+
+        let dataset = data.results;
+        const allDetails = d3.select('.planetDetails')
+        const allMovies = d3.select('.planetMovies')
+
+        console.log(data)
+        console.log(dataset);
+
+        const svg = d3
+          .select(".allPlanets")
+          .append('svg')
+          .attr('width', 1700)
+          .attr('height', 400)
+          .append('g')
+          .attr('transform', 'translate(200, 100)');
+
+        const planets = svg
+          .selectAll('.planets')
+          .data(dataset)
+          .enter()
+          .append('circle')
+          .attr('class', 'planets')
+          .attr("fill", "#ada284")
+          .attr('cx', function(d, i) {
+            return i * 140
+          })
+          .attr('cy', 50)
+          .attr("r", function(d, i) {
+            return +d.diameter / scale
+          })
+          .on('mouseover', mouseover)
+          .on('mouseout', mouseout)
+
+        //search movie in api
+        function searchMovie(movie, nrOfMovies) {
+          $(".planetMovies").append("<h3> Movies <h3>")
+          for (let i = 0; i < nrOfMovies; i++) {
+            d3.json(movie[i],
+              function(data) {
+                $(".planetMovies").append(data.title + '<br>')
+              });
+          }
+        }
+
+        //mouse functions
+        function mouseover() {
+          allDetails.html(' ');
+          allMovies.html(' ');
+          const planetData = d3.select(this).data()[0];
+          d3.select(this).attr("r", function(d, i) {
+            return +d.diameter / scale + 10
+          })
+
+          //movie function
+          searchMovie(planetData.films, planetData.films.length)
+
+          allDetails
+            .html(
+              `<h3>${planetData.name}<h3>
+                ${planetData.diameter} km diameter <br> 
+                ${planetData.climate} climate <br>
+                Population: ${planetData.population} <br>
+              `
+            );
+        }
+
+        function mouseout() {
+          allDetails.html(' ');
+          allMovies.html(' ');
+          d3.select(this).attr("r", function(d, i) {
+            return +d.diameter / scale
+          })
+        };
+
+        //planet names
+        const text = svg
+          .selectAll("text")
+          .data(dataset)
+          .enter()
+          .append("text")
+          .attr("class", "names")
+          .style("text-anchor", "middle")
+          .text(function(d) {
+            return d.name
+          })
+          .attr("x", function(d, i) {
+            return i * 140
+          })
+          .attr("y", 200);
+
+      })
+  </script>
+</body></html>
